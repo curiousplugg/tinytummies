@@ -200,7 +200,7 @@ function loadProduct() {
     `;
     
     document.getElementById('productDetailContent').innerHTML = productDetailHTML;
-    document.title = `${product.title} - TinyTummies`;
+    document.title = `${product.title} - Tiny Tummy`;
     
     // Load related products
     loadRelatedProducts(productId);
