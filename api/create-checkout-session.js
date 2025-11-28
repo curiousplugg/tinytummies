@@ -18,16 +18,16 @@ export default async function handler(req, res) {
             return res.status(400).json({ error: 'No items in cart' });
         }
 
-        // Helper function to get product image URL
+        // Helper function to get product image URL (properly URL encoded)
         const getProductImage = (productId) => {
             const imageMap = {
-                1: "https://tiny-tummy.com/4in1AutoCleaBPAFreefor412MonthsBaby FoodMakerSteamerBlender/main_image/S276ed121fd9a46abad26b0e9c90e961a7.jpg",
-                2: "https://tiny-tummy.com/2PC Silicone Sucker Bowl Feeding Tableware for Infant/main_image/Ab6697c216e334f658d84df1a524c67bcz.jpg",
-                3: "https://tiny-tummy.com/5Pcs:Set Baby Soft Silicone Tableware Kid Feeding Dishe Sucker Plate Bowl Spoon Fork Set Children Dishes Non-slip Dinnerware Set/main_image/S21795722e2c64734a4c4a5f4b0769097q.jpg",
-                4: "https://tiny-tummy.com/Upgraded Baby Bottle Steam Sterilizer 360° Sterilization Bottles Sterilizer Large Capacity Auto Power Off Safe Sterilizer/main_image/S401b7865098443e98d24b350e2dcbaa0C.jpg",
-                5: "https://tiny-tummy.com/Baby Pacifier Fruit Feeder With Cover Silicone Newborn Nipple Fresh Fruit Food Vegetable Feeding Soother Baby Teether Toys/main_image/S23cbd5187adf44beb63b5904917b6a46d.jpg",
-                6: "https://tiny-tummy.com/1set Silicone Baby Fruit Feeder with Cover Baby Nipple Fresh Food Vegetable Supplement Soother Nibbler Baby Silicone Toys/main_image/S43fc540f1b774b4fb1702bfe2e20794cj.jpg",
-                7: "https://tiny-tummy.com/Baby Electric Milk Bottle Shaker, USB Smart Intelligent Milk Powder Mixer, Lithium battery, Baby Formula Maker, Divine Device/main_image/S1c02935f16774099994ab49fb4e99c37t.png"
+                1: "https://tiny-tummy.com/4in1AutoCleaBPAFreefor412MonthsBaby%20FoodMakerSteamerBlender/main_image/S276ed121fd9a46abad26b0e9c90e961a7.jpg",
+                2: "https://tiny-tummy.com/2PC%20Silicone%20Sucker%20Bowl%20Feeding%20Tableware%20for%20Infant/main_image/Ab6697c216e334f658d84df1a524c67bcz.jpg",
+                3: "https://tiny-tummy.com/5Pcs%3ASet%20Baby%20Soft%20Silicone%20Tableware%20Kid%20Feeding%20Dishe%20Sucker%20Plate%20Bowl%20Spoon%20Fork%20Set%20Children%20Dishes%20Non-slip%20Dinnerware%20Set/main_image/S21795722e2c64734a4c4a5f4b0769097q.jpg",
+                4: "https://tiny-tummy.com/Upgraded%20Baby%20Bottle%20Steam%20Sterilizer%20360%C2%B0%20Sterilization%20Bottles%20Sterilizer%20Large%20Capacity%20Auto%20Power%20Off%20Safe%20Sterilizer/main_image/S401b7865098443e98d24b350e2dcbaa0C.jpg",
+                5: "https://tiny-tummy.com/Baby%20Pacifier%20Fruit%20Feeder%20With%20Cover%20Silicone%20Newborn%20Nipple%20Fresh%20Fruit%20Food%20Vegetable%20Feeding%20Soother%20Baby%20Teether%20Toys/main_image/S23cbd5187adf44beb63b5904917b6a46d.jpg",
+                6: "https://tiny-tummy.com/1set%20Silicone%20Baby%20Fruit%20Feeder%20with%20Cover%20Baby%20Nipple%20Fresh%20Food%20Vegetable%20Supplement%20Soother%20Nibbler%20Baby%20Silicone%20Toys/main_image/S43fc540f1b774b4fb1702bfe2e20794cj.jpg",
+                7: "https://tiny-tummy.com/Baby%20Electric%20Milk%20Bottle%20Shaker%2C%20USB%20Smart%20Intelligent%20Milk%20Powder%20Mixer%2C%20Lithium%20battery%2C%20Baby%20Formula%20Maker%2C%20Divine%20Device/main_image/S1c02935f16774099994ab49fb4e99c37t.png"
             };
             return imageMap[productId] || null;
         };
