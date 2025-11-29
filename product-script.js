@@ -482,8 +482,106 @@ function setupEventListeners() {
         });
     }
     
-    // Checkout
+    // Checkout - Embedded Stripe
     const checkoutBtn = document.getElementById('checkoutBtn');
+    const stripeCheckoutSection = document.getElementById('stripeCheckoutSection');
+    const stripeCheckoutContainer = document.getElementById('stripeCheckoutContainer');
+    let stripeCheckout = null;
+    let currentStripeInstance = null;
+    
+    // Function to refresh checkout when cart changes
+    window.refreshCheckout = async function() {
+        // Only refresh if checkout is already displayed
+        if (!stripeCheckoutSection || stripeCheckoutSection.style.display === 'none') {
+            return;
+        }
+        
+        if (cart.length === 0) {
+            // Hide checkout section if cart is empty
+            stripeCheckoutSection.style.display = 'none';
+            if (stripeCheckout) {
+                stripeCheckout.destroy();
+                stripeCheckout = null;
+            }
+            return;
+        }
+        
+        // Show loading state
+        if (stripeCheckoutContainer) {
+            stripeCheckoutContainer.innerHTML = `
+                <div class="stripe-loading">
+                    <div class="loading-spinner"></div>
+                    <p>Updating checkout...</p>
+                </div>
+            `;
+        }
+        
+        // Destroy existing checkout if it exists
+        if (stripeCheckout) {
+            try {
+                stripeCheckout.destroy();
+            } catch (e) {
+                console.log('Error destroying checkout:', e);
+            }
+            stripeCheckout = null;
+        }
+        
+        try {
+            // Create new checkout session with updated cart
+            const response = await fetch('/api/create-checkout-session', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ items: cart }),
+            });
+            
+            const contentType = response.headers.get('content-type');
+            if (!contentType || !contentType.includes('application/json')) {
+                const text = await response.text();
+                console.error('Non-JSON response:', text);
+                throw new Error('Server returned an error. Please try again.');
+            }
+            
+            const data = await response.json();
+            
+            if (!response.ok) {
+                throw new Error(data.error || data.message || 'Failed to create checkout session');
+            }
+            
+            // Clear the container before mounting
+            if (stripeCheckoutContainer) {
+                stripeCheckoutContainer.innerHTML = '';
+            }
+            
+            // Initialize Stripe and embed checkout
+            if (!currentStripeInstance) {
+                currentStripeInstance = Stripe('pk_live_51SYRe757nKOsYdQQpPiiiwKMmlgXHV3AMqaC8mhoLlgV37ieOElwcv8KmJiQFgWnmcQFj6rT3DjgY0JV2Zh3y4hg00TTUK6Zq8');
+            }
+            
+            // Create embedded checkout
+            stripeCheckout = await currentStripeInstance.initEmbeddedCheckout({
+                clientSecret: data.clientSecret
+            });
+            
+            // Mount the embedded checkout
+            if (stripeCheckoutContainer) {
+                stripeCheckout.mount(stripeCheckoutContainer);
+            }
+        } catch (error) {
+            console.error('Error refreshing checkout:', error);
+            if (stripeCheckoutContainer) {
+                stripeCheckoutContainer.innerHTML = `
+                    <div class="stripe-loading">
+                        <p style="color: #c62828;">Error: ${error.message}</p>
+                        <button class="btn-primary" onclick="location.reload()" style="margin-top: 1rem;">Try Again</button>
+                    </div>
+                `;
+            }
+        }
+    };
+    
+    // Checkout
     if (checkoutBtn) {
         checkoutBtn.addEventListener('click', async () => {
             if (cart.length === 0) {
@@ -496,9 +594,6 @@ function setupEventListeners() {
             checkoutBtn.textContent = 'Processing...';
             
             // Show loading state
-            const stripeCheckoutSection = document.getElementById('stripeCheckoutSection');
-            const stripeCheckoutContainer = document.getElementById('stripeCheckoutContainer');
-            
             if (stripeCheckoutSection) {
                 stripeCheckoutSection.style.display = 'block';
                 if (stripeCheckoutContainer) {
