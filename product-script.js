@@ -500,10 +500,9 @@ function setupEventListeners() {
     let stripeCheckout = null;
     let currentStripeInstance = null;
     
-    // Function to refresh checkout when cart changes
+    // Function to initialize or refresh checkout when cart changes
     window.refreshCheckout = async function() {
-        // Only refresh if checkout is already displayed
-        if (!stripeCheckoutSection || stripeCheckoutSection.style.display === 'none') {
+        if (!stripeCheckoutSection || !stripeCheckoutContainer) {
             return;
         }
         
@@ -511,11 +510,18 @@ function setupEventListeners() {
             // Hide checkout section if cart is empty
             stripeCheckoutSection.style.display = 'none';
             if (stripeCheckout) {
-                stripeCheckout.destroy();
+                try {
+                    stripeCheckout.destroy();
+                } catch (e) {
+                    console.log('Error destroying checkout:', e);
+                }
                 stripeCheckout = null;
             }
             return;
         }
+        
+        // Show checkout section if cart has items
+        stripeCheckoutSection.style.display = 'block';
         
         // Show loading state
         if (stripeCheckoutContainer) {
@@ -608,102 +614,17 @@ function setupEventListeners() {
         }
     };
     
-    // Checkout
+    // Checkout button - just scrolls to checkout (checkout is always visible)
     if (checkoutBtn) {
-        checkoutBtn.addEventListener('click', async () => {
+        checkoutBtn.addEventListener('click', () => {
             if (cart.length === 0) {
                 alert('Your cart is empty!');
                 return;
             }
             
-            // Disable button during processing
-            checkoutBtn.disabled = true;
-            checkoutBtn.textContent = 'Processing...';
-            
-            // Show loading state
+            // Scroll to checkout section
             if (stripeCheckoutSection) {
-                stripeCheckoutSection.style.display = 'block';
-                if (stripeCheckoutContainer) {
-                    stripeCheckoutContainer.innerHTML = `
-                        <div class="stripe-loading">
-                            <div class="loading-spinner"></div>
-                            <p>Loading secure checkout...</p>
-                        </div>
-                    `;
-                }
-                
-                // Scroll to checkout section
-                setTimeout(() => {
-                    stripeCheckoutSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-                }, 100);
-            }
-            
-            try {
-                // Send cart items to serverless function
-                const response = await fetch('/api/create-checkout-session', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ items: cart }),
-                });
-                
-                // Check if response is JSON
-                const contentType = response.headers.get('content-type');
-                if (!contentType || !contentType.includes('application/json')) {
-                    const text = await response.text();
-                    console.error('Non-JSON response:', text);
-                    throw new Error('Server returned an error. Please try again.');
-                }
-                
-                const data = await response.json();
-                
-                if (!response.ok) {
-                    throw new Error(data.error || data.message || 'Failed to create checkout session');
-                }
-                
-                // Clear the container before mounting (embedded checkout requires empty container)
-                if (stripeCheckoutContainer) {
-                    stripeCheckoutContainer.innerHTML = '';
-                }
-                
-                // Initialize Stripe and embed checkout
-                if (!currentStripeInstance) {
-                    currentStripeInstance = Stripe('pk_live_51SYRe757nKOsYdQQpPiiiwKMmlgXHV3AMqaC8mhoLlgV37ieOElwcv8KmJiQFgWnmcQFj6rT3DjgY0JV2Zh3y4hg00TTUK6Zq8');
-                }
-                
-                // Create embedded checkout with appearance customization
-                stripeCheckout = await currentStripeInstance.initEmbeddedCheckout({
-                    clientSecret: data.clientSecret,
-                    onComplete: async (event) => {
-                        // Handle successful payment
-                        console.log('Payment completed:', event);
-                        // Redirect to success page
-                        window.location.href = `/success.html?session_id=${event.sessionId}`;
-                    }
-                });
-                
-                // Mount the embedded checkout (container must be empty)
-                if (stripeCheckoutContainer) {
-                    stripeCheckout.mount(stripeCheckoutContainer);
-                }
-                
-                // Reset button
-                checkoutBtn.disabled = false;
-                checkoutBtn.textContent = 'Checkout';
-                
-            } catch (error) {
-                console.error('Checkout error:', error);
-                if (stripeCheckoutContainer) {
-                    stripeCheckoutContainer.innerHTML = `
-                        <div class="stripe-loading">
-                            <p style="color: #c62828;">Error: ${error.message}</p>
-                            <button class="btn-primary" onclick="location.reload()" style="margin-top: 1rem;">Try Again</button>
-                        </div>
-                    `;
-                }
-                checkoutBtn.disabled = false;
-                checkoutBtn.textContent = 'Checkout';
+                stripeCheckoutSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
             }
         });
     }
