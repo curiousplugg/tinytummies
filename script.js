@@ -279,6 +279,45 @@ function renderCart() {
 
 // Setup Event Listeners
 function setupEventListeners() {
+    // Hamburger Menu Toggle (Mobile)
+    const hamburgerMenu = document.getElementById('hamburgerMenu');
+    const mainNav = document.getElementById('mainNav');
+    
+    if (hamburgerMenu && mainNav) {
+        // Create overlay for mobile menu
+        let navOverlay = document.querySelector('.nav-overlay');
+        if (!navOverlay) {
+            navOverlay = document.createElement('div');
+            navOverlay.className = 'nav-overlay';
+            document.body.appendChild(navOverlay);
+        }
+        
+        hamburgerMenu.addEventListener('click', () => {
+            hamburgerMenu.classList.toggle('active');
+            mainNav.classList.toggle('active');
+            navOverlay.classList.toggle('active');
+            document.body.style.overflow = mainNav.classList.contains('active') ? 'hidden' : '';
+        });
+        
+        // Close menu when clicking overlay
+        navOverlay.addEventListener('click', () => {
+            hamburgerMenu.classList.remove('active');
+            mainNav.classList.remove('active');
+            navOverlay.classList.remove('active');
+            document.body.style.overflow = '';
+        });
+        
+        // Close menu when clicking nav links
+        mainNav.querySelectorAll('a').forEach(link => {
+            link.addEventListener('click', () => {
+                hamburgerMenu.classList.remove('active');
+                mainNav.classList.remove('active');
+                navOverlay.classList.remove('active');
+                document.body.style.overflow = '';
+            });
+        });
+    }
+    
     // Cart Icon Click
     const cartIcon = document.getElementById('cartIcon');
     const cartModal = document.getElementById('cartModal');
