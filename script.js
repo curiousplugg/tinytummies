@@ -341,6 +341,10 @@ function setupEventListeners() {
     cartIcon.addEventListener('click', () => {
         renderCart();
         cartModal.classList.add('show');
+        // Initialize checkout if cart has items
+        if (cart.length > 0) {
+            initializeCheckout();
+        }
     });
     
     closeCart.addEventListener('click', () => {
@@ -392,10 +396,9 @@ function setupEventListeners() {
     let stripeCheckout = null;
     let currentStripeInstance = null;
     
-    // Function to refresh checkout when cart changes
+    // Function to initialize or refresh checkout when cart changes
     window.refreshCheckout = async function() {
-        // Only refresh if checkout is already displayed
-        if (!stripeCheckoutSection || stripeCheckoutSection.style.display === 'none') {
+        if (!stripeCheckoutSection || !stripeCheckoutContainer) {
             return;
         }
         
@@ -403,11 +406,18 @@ function setupEventListeners() {
             // Hide checkout section if cart is empty
             stripeCheckoutSection.style.display = 'none';
             if (stripeCheckout) {
-                stripeCheckout.destroy();
+                try {
+                    stripeCheckout.destroy();
+                } catch (e) {
+                    console.log('Error destroying checkout:', e);
+                }
                 stripeCheckout = null;
             }
             return;
         }
+        
+        // Show checkout section if cart has items
+        stripeCheckoutSection.style.display = 'block';
         
         // Show loading state
         if (stripeCheckoutContainer) {
@@ -484,29 +494,26 @@ function setupEventListeners() {
         }
     };
     
-    checkoutBtn.addEventListener('click', async () => {
+    // Function to initialize checkout (called automatically when cart has items)
+    async function initializeCheckout() {
         if (cart.length === 0) {
-            alert('Your cart is empty!');
             return;
         }
         
-        // Disable button during processing
-        checkoutBtn.disabled = true;
-        checkoutBtn.textContent = 'Processing...';
+        if (!stripeCheckoutSection || !stripeCheckoutContainer) {
+            return;
+        }
+        
+        // Show checkout section
+        stripeCheckoutSection.style.display = 'block';
         
         // Show loading state
-        stripeCheckoutSection.style.display = 'block';
         stripeCheckoutContainer.innerHTML = `
             <div class="stripe-loading">
                 <div class="loading-spinner"></div>
                 <p>Loading secure checkout...</p>
             </div>
         `;
-        
-        // Scroll to checkout section
-        setTimeout(() => {
-            stripeCheckoutSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-        }, 100);
         
         try {
             // Send cart items to serverless function
@@ -533,13 +540,21 @@ function setupEventListeners() {
             }
             
             // Clear the container before mounting (embedded checkout requires empty container)
-            if (stripeCheckoutContainer) {
-                stripeCheckoutContainer.innerHTML = '';
-            }
+            stripeCheckoutContainer.innerHTML = '';
             
             // Initialize Stripe and embed checkout
             if (!currentStripeInstance) {
                 currentStripeInstance = Stripe('pk_live_51SYRe757nKOsYdQQpPiiiwKMmlgXHV3AMqaC8mhoLlgV37ieOElwcv8KmJiQFgWnmcQFj6rT3DjgY0JV2Zh3y4hg00TTUK6Zq8');
+            }
+            
+            // Destroy existing checkout if it exists
+            if (stripeCheckout) {
+                try {
+                    stripeCheckout.destroy();
+                } catch (e) {
+                    console.log('Error destroying checkout:', e);
+                }
+                stripeCheckout = null;
             }
             
             // Create embedded checkout with appearance customization
@@ -554,24 +569,29 @@ function setupEventListeners() {
             });
             
             // Mount the embedded checkout (container must be empty)
-            if (stripeCheckoutContainer) {
-                stripeCheckout.mount(stripeCheckoutContainer);
-            }
-            
-            // Reset button
-            checkoutBtn.disabled = false;
-            checkoutBtn.textContent = 'Checkout';
+            stripeCheckout.mount(stripeCheckoutContainer);
             
         } catch (error) {
             console.error('Checkout error:', error);
             stripeCheckoutContainer.innerHTML = `
                 <div class="stripe-loading">
                     <p style="color: #c62828;">Error: ${error.message}</p>
-                    <button class="btn-primary" onclick="location.reload()" style="margin-top: 1rem;">Try Again</button>
+                    <button class="btn-primary" onclick="window.refreshCheckout()" style="margin-top: 1rem;">Try Again</button>
                 </div>
             `;
-            checkoutBtn.disabled = false;
-            checkoutBtn.textContent = 'Checkout';
+        }
+    }
+    
+    // Checkout button - just scrolls to checkout (checkout is always visible)
+    checkoutBtn.addEventListener('click', () => {
+        if (cart.length === 0) {
+            alert('Your cart is empty!');
+            return;
+        }
+        
+        // Scroll to checkout section
+        if (stripeCheckoutSection) {
+            stripeCheckoutSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }
     });
     
