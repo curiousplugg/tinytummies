@@ -385,6 +385,11 @@ function setupEventListeners() {
                 throw new Error(data.error || data.message || 'Failed to create checkout session');
             }
             
+                // Clear the container before mounting (embedded checkout requires empty container)
+                if (stripeCheckoutContainer) {
+                    stripeCheckoutContainer.innerHTML = '';
+                }
+                
                 // Initialize Stripe and embed checkout
                 const stripe = Stripe('pk_live_51SYRe757nKOsYdQQpPiiiwKMmlgXHV3AMqaC8mhoLlgV37ieOElwcv8KmJiQFgWnmcQFj6rT3DjgY0JV2Zh3y4hg00TTUK6Zq8');
                 
@@ -393,7 +398,7 @@ function setupEventListeners() {
                     clientSecret: data.clientSecret
                 });
                 
-                // Mount the embedded checkout
+                // Mount the embedded checkout (container must be empty)
                 if (stripeCheckoutContainer) {
                     checkout.mount(stripeCheckoutContainer);
                 }
