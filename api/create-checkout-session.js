@@ -4,13 +4,89 @@
 
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
+// Security headers
+function setSecurityHeaders(res) {
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('X-Frame-Options', 'DENY');
+    res.setHeader('X-XSS-Protection', '1; mode=block');
+    res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+    res.setHeader('Permissions-Policy', 'payment=(self "https://js.stripe.com")');
+}
+
+// Input validation and sanitization
+function validateCartItem(item) {
+    if (!item || typeof item !== 'object') return false;
+    
+    // Validate required fields
+    if (!item.id || typeof item.id !== 'number' || item.id < 1 || item.id > 1000) return false;
+    if (!item.title || typeof item.title !== 'string' || item.title.length > 200) return false;
+    if (!item.price || typeof item.price !== 'number' || item.price < 0 || item.price > 10000) return false;
+    if (!item.quantity || typeof item.quantity !== 'number' || item.quantity < 1 || item.quantity > 100) return false;
+    
+    // Sanitize title (remove potentially dangerous characters)
+    item.title = item.title.replace(/[<>]/g, '').trim();
+    
+    return true;
+}
+
+// Rate limiting (simple in-memory store - for production, use Redis)
+const rateLimitStore = new Map();
+const RATE_LIMIT_WINDOW = 60 * 1000; // 1 minute
+const RATE_LIMIT_MAX_REQUESTS = 10; // 10 requests per minute per IP
+
+function checkRateLimit(req) {
+    const ip = req.headers['x-forwarded-for']?.split(',')[0] || req.headers['x-real-ip'] || 'unknown';
+    const now = Date.now();
+    const key = `rate_limit_${ip}`;
+    
+    const requests = rateLimitStore.get(key) || [];
+    const recentRequests = requests.filter(time => now - time < RATE_LIMIT_WINDOW);
+    
+    if (recentRequests.length >= RATE_LIMIT_MAX_REQUESTS) {
+        return false;
+    }
+    
+    recentRequests.push(now);
+    rateLimitStore.set(key, recentRequests);
+    
+    // Clean up old entries
+    if (rateLimitStore.size > 1000) {
+        const oldestKey = rateLimitStore.keys().next().value;
+        rateLimitStore.delete(oldestKey);
+    }
+    
+    return true;
+}
+
 // For Vercel - CommonJS export
 module.exports = async function handler(req, res) {
-    // Enable CORS
-    res.setHeader('Access-Control-Allow-Credentials', true);
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
-    res.setHeader('Access-Control-Allow-Headers', 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version');
+    // Set security headers
+    setSecurityHeaders(res);
+    
+    // Rate limiting
+    if (!checkRateLimit(req)) {
+        return res.status(429).json({ 
+            error: 'Too many requests',
+            message: 'Please try again later.'
+        });
+    }
+    
+    // CORS - Only allow your domain
+    const allowedOrigins = [
+        'https://tiny-tummy.com',
+        'https://www.tiny-tummy.com',
+        'http://localhost:3000',
+        'http://localhost:8000'
+    ];
+    
+    const origin = req.headers.origin;
+    if (origin && allowedOrigins.includes(origin)) {
+        res.setHeader('Access-Control-Allow-Origin', origin);
+        res.setHeader('Access-Control-Allow-Credentials', 'true');
+    }
+    
+    res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
     
     // Handle OPTIONS request
     if (req.method === 'OPTIONS') {
@@ -35,8 +111,26 @@ module.exports = async function handler(req, res) {
 
         const { items } = req.body;
 
-        if (!items || items.length === 0) {
-            return res.status(400).json({ error: 'No items in cart' });
+        if (!items || !Array.isArray(items) || items.length === 0) {
+            return res.status(400).json({ error: 'Invalid cart data' });
+        }
+        
+        // Validate and sanitize all items
+        if (items.length > 50) {
+            return res.status(400).json({ error: 'Cart size limit exceeded' });
+        }
+        
+        const validItems = [];
+        for (const item of items) {
+            if (validateCartItem(item)) {
+                validItems.push(item);
+            } else {
+                return res.status(400).json({ error: 'Invalid item data' });
+            }
+        }
+        
+        if (validItems.length === 0) {
+            return res.status(400).json({ error: 'No valid items in cart' });
         }
 
         // Helper function to get product image URL (properly URL encoded)
@@ -53,8 +147,8 @@ module.exports = async function handler(req, res) {
             return imageMap[productId] || null;
         };
 
-        // Create line items for Stripe
-        const lineItems = items.map(item => {
+        // Create line items for Stripe (use validated items)
+        const lineItems = validItems.map(item => {
             const productImage = getProductImage(item.id);
             return {
                 price_data: {
@@ -98,8 +192,8 @@ module.exports = async function handler(req, res) {
                 },
             ],
             metadata: {
-                order_items: JSON.stringify(items.map(item => ({
-                    title: item.title,
+                order_items: JSON.stringify(validItems.map(item => ({
+                    title: item.title.substring(0, 100), // Limit length
                     quantity: item.quantity,
                     price: item.price
                 })))
@@ -128,10 +222,10 @@ module.exports = async function handler(req, res) {
             errorMessage = error.message;
         }
         
+        // Don't expose internal error details to client
         return res.status(500).json({ 
-            error: errorMessage,
-            message: error.message,
-            type: error.type || 'UnknownError'
+            error: 'Payment processing error',
+            message: 'Unable to process payment. Please try again or contact support.'
         });
     }
 }

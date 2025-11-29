@@ -253,6 +253,21 @@ function updateCartCount() {
     cartCount.textContent = totalItems;
 }
 
+// XSS Protection - Escape HTML
+function escapeHtml(text) {
+    if (typeof text !== 'string') {
+        return String(text);
+    }
+    const map = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;'
+    };
+    return text.replace(/[&<>"']/g, (m) => map[m]);
+}
+
 // Render Cart
 function renderCart() {
     const cartItems = document.getElementById('cartItems');
@@ -268,21 +283,29 @@ function renderCart() {
         const product = products.find(p => p.id === item.id);
         const imagePath = findProductImage(item.id);
         
+        // Sanitize all user-facing data
+        const safeTitle = escapeHtml(item.title);
+        const safePrice = typeof item.price === 'number' ? item.price.toFixed(2) : '0.00';
+        const safeQuantity = typeof item.quantity === 'number' ? item.quantity : 1;
+        const safeTotal = (typeof item.price === 'number' && typeof item.quantity === 'number') 
+            ? (item.price * item.quantity).toFixed(2) : '0.00';
+        const safeId = typeof item.id === 'number' ? item.id : 0;
+        
         return `
             <div class="cart-item">
-                <img src="${imagePath}" alt="${item.title}" style="width: 60px; height: 60px; object-fit: cover; border-radius: 8px; margin-right: 1rem;" onerror="this.style.display='none'">
+                <img src="${escapeHtml(imagePath)}" alt="${safeTitle}" style="width: 60px; height: 60px; object-fit: cover; border-radius: 8px; margin-right: 1rem;" onerror="this.style.display='none'">
                 <div class="cart-item-info" style="flex: 1;">
-                    <div class="cart-item-title">${item.title}</div>
-                    <div class="cart-item-price">$${item.price.toFixed(2)}</div>
+                    <div class="cart-item-title">${safeTitle}</div>
+                    <div class="cart-item-price">$${safePrice}</div>
                     <div class="cart-item-quantity">
-                        <button class="quantity-btn" onclick="updateQuantity(${item.id}, -1)">-</button>
-                        <span>${item.quantity}</span>
-                        <button class="quantity-btn" onclick="updateQuantity(${item.id}, 1)">+</button>
+                        <button class="quantity-btn" onclick="updateQuantity(${safeId}, -1)">-</button>
+                        <span>${safeQuantity}</span>
+                        <button class="quantity-btn" onclick="updateQuantity(${safeId}, 1)">+</button>
                     </div>
                 </div>
                 <div style="text-align: right;">
-                    <div style="font-weight: 600; margin-bottom: 0.5rem;">$${(item.price * item.quantity).toFixed(2)}</div>
-                    <button class="remove-item" onclick="removeFromCart(${item.id})">Remove</button>
+                    <div style="font-weight: 600; margin-bottom: 0.5rem;">$${safeTotal}</div>
+                    <button class="remove-item" onclick="removeFromCart(${safeId})">Remove</button>
                 </div>
             </div>
         `;
