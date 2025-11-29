@@ -173,9 +173,13 @@ function loadProduct() {
             <div class="product-details">
                 <h1 class="product-detail-title">${product.title}</h1>
                 <div class="product-detail-price">
-                    <span class="current-price">$${product.price.toFixed(2)}</span>
-                    ${product.originalPrice && product.originalPrice > product.price ? 
-                        `<span class="original-price">$${product.originalPrice.toFixed(2)}</span>` : ''}
+                    ${product.originalPrice && product.originalPrice > product.price ? `
+                        <div class="price-wrapper">
+                            <span class="original-price">$${product.originalPrice.toFixed(2)}</span>
+                            <span class="discount-badge">${Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)}% OFF</span>
+                        </div>
+                        <span class="current-price">$${product.price.toFixed(2)}</span>
+                    ` : `<span class="current-price">$${product.price.toFixed(2)}</span>`}
                 </div>
                 <div class="add-to-cart-section">
                     <button class="btn-pink btn-large" onclick="addToCart(${product.id})">

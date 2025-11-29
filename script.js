@@ -20,7 +20,7 @@ const products = [
         id: 3,
         title: "Complete 5-Piece Silicone Feeding Set",
         price: 19.99,
-        originalPrice: 11.57,
+        originalPrice: 29.99,
         image: "5Pcs:Set Baby Soft Silicone Tableware Kid Feeding Dishe Sucker Plate Bowl Spoon Fork Set Children Dishes Non-slip Dinnerware Set/main_image/S21795722e2c64734a4c4a5f4b0769097q.jpg",
         description: "Complete feeding set with plate, bowl, spoon, and fork. Perfect starter set for toddlers."
     },
@@ -28,7 +28,7 @@ const products = [
         id: 4,
         title: "360° Baby Bottle Steam Sterilizer",
         price: 49.99,
-        originalPrice: null,
+        originalPrice: 69.99,
         image: "Upgraded Baby Bottle Steam Sterilizer 360° Sterilization Bottles Sterilizer Large Capacity Auto Power Off Safe Sterilizer/main_image/S401b7865098443e98d24b350e2dcbaa0C.jpg",
         description: "Large capacity sterilizer with auto power-off. Sterilizes up to 6 bottles simultaneously."
     },
@@ -36,7 +36,7 @@ const products = [
         id: 5,
         title: "Silicone Fruit & Vegetable Feeder Pacifier",
         price: 11.99,
-        originalPrice: null,
+        originalPrice: 16.99,
         image: "Baby Pacifier Fruit Feeder With Cover Silicone Newborn Nipple Fresh Fruit Food Vegetable Feeding Soother Baby Teether Toys/main_image/S23cbd5187adf44beb63b5904917b6a46d.jpg",
         description: "Safe fruit and vegetable feeder with cover. Perfect for introducing fresh foods to babies."
     },
@@ -44,7 +44,7 @@ const products = [
         id: 6,
         title: "Deluxe Silicone Fruit Feeder Set with Cover",
         price: 11.99,
-        originalPrice: 9.13,
+        originalPrice: 16.99,
         image: "1set Silicone Baby Fruit Feeder with Cover Baby Nipple Fresh Food Vegetable Supplement Soother Nibbler Baby Silicone Toys/main_image/S43fc540f1b774b4fb1702bfe2e20794cj.jpg",
         description: "Complete fruit feeder set with protective cover. Includes multiple sizes for growing babies."
     },
@@ -148,8 +148,13 @@ function renderProducts() {
                 <div class="product-info">
                     <h3 class="product-title">${product.title}</h3>
                     <div class="product-price">
-                        $${product.price.toFixed(2)}
-                        ${product.originalPrice && product.originalPrice > product.price ? `<span class="original-price">$${product.originalPrice.toFixed(2)}</span>` : ''}
+                        ${product.originalPrice && product.originalPrice > product.price ? `
+                            <div class="price-wrapper">
+                                <span class="original-price">$${product.originalPrice.toFixed(2)}</span>
+                                <span class="discount-badge">${Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)}% OFF</span>
+                            </div>
+                            <span class="current-price">$${product.price.toFixed(2)}</span>
+                        ` : `<span class="current-price">$${product.price.toFixed(2)}</span>`}
                     </div>
                 </div>
             </div>
