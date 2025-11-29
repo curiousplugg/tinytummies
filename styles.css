@@ -1026,26 +1026,8 @@ body {
     text-align: center;
 }
 
-.social-media {
-    display: flex;
-    gap: 1rem;
-    margin-top: 1.5rem;
-    justify-content: center;
-    align-items: center;
-}
-
 .instagram-link {
-    color: var(--white);
-    text-decoration: none;
-    font-size: 1rem;
-    transition: color 0.3s ease;
-    padding: 0.5rem 1rem;
-    border-radius: 6px;
-}
-
-.instagram-link:hover {
-    color: var(--primary-color);
-    text-decoration: underline;
+    /* Inherits styles from .contact-item */
 }
 
 .social-icon {
