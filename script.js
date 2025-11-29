@@ -542,9 +542,15 @@ function setupEventListeners() {
                 currentStripeInstance = Stripe('pk_live_51SYRe757nKOsYdQQpPiiiwKMmlgXHV3AMqaC8mhoLlgV37ieOElwcv8KmJiQFgWnmcQFj6rT3DjgY0JV2Zh3y4hg00TTUK6Zq8');
             }
             
-            // Create embedded checkout
+            // Create embedded checkout with appearance customization
             stripeCheckout = await currentStripeInstance.initEmbeddedCheckout({
-                clientSecret: data.clientSecret
+                clientSecret: data.clientSecret,
+                onComplete: async (event) => {
+                    // Handle successful payment
+                    console.log('Payment completed:', event);
+                    // Redirect to success page
+                    window.location.href = `/success.html?session_id=${event.sessionId}`;
+                }
             });
             
             // Mount the embedded checkout (container must be empty)
@@ -552,9 +558,9 @@ function setupEventListeners() {
                 stripeCheckout.mount(stripeCheckoutContainer);
             }
             
-                // Reset button
-                checkoutBtn.disabled = false;
-                checkoutBtn.textContent = 'Checkout';
+            // Reset button
+            checkoutBtn.disabled = false;
+            checkoutBtn.textContent = 'Checkout';
             
         } catch (error) {
             console.error('Checkout error:', error);
