@@ -22,7 +22,7 @@ const products = [
         id: 3,
         title: "Complete 5-Piece Silicone Feeding Set",
         price: 19.99,
-        originalPrice: 11.57,
+        originalPrice: 29.99,
         image: "5Pcs:Set Baby Soft Silicone Tableware Kid Feeding Dishe Sucker Plate Bowl Spoon Fork Set Children Dishes Non-slip Dinnerware Set/main_image/S21795722e2c64734a4c4a5f4b0769097q.jpg",
         description: "Complete feeding set with plate, bowl, spoon, and fork. Perfect starter set for toddlers.",
         fullDescription: "This comprehensive 5-piece feeding set includes everything your toddler needs: a divided plate with suction base, a deep bowl, and matching spoon and fork. All pieces are made from soft, food-grade silicone that's gentle on gums and perfect for learning to eat independently. The suction base prevents spills and messes, making mealtime less stressful for parents."
@@ -31,7 +31,7 @@ const products = [
         id: 4,
         title: "360° Baby Bottle Steam Sterilizer",
         price: 49.99,
-        originalPrice: null,
+        originalPrice: 69.99,
         image: "Upgraded Baby Bottle Steam Sterilizer 360° Sterilization Bottles Sterilizer Large Capacity Auto Power Off Safe Sterilizer/main_image/S401b7865098443e98d24b350e2dcbaa0C.jpg",
         description: "Large capacity sterilizer with auto power-off. Sterilizes up to 6 bottles simultaneously.",
         fullDescription: "Ensure your baby's feeding equipment is completely sanitized with this advanced 360° steam sterilizer. The large capacity design can sterilize up to 6 bottles at once, along with nipples, pacifiers, and other accessories. Features automatic power-off for safety and energy efficiency. The 360° sterilization ensures every surface is thoroughly cleaned, giving you peace of mind."
@@ -40,7 +40,7 @@ const products = [
         id: 5,
         title: "Silicone Fruit & Vegetable Feeder Pacifier",
         price: 11.99,
-        originalPrice: null,
+        originalPrice: 16.99,
         image: "Baby Pacifier Fruit Feeder With Cover Silicone Newborn Nipple Fresh Fruit Food Vegetable Feeding Soother Baby Teether Toys/main_image/S23cbd5187adf44beb63b5904917b6a46d.jpg",
         description: "Safe fruit and vegetable feeder with cover. Perfect for introducing fresh foods to babies.",
         fullDescription: "Introduce your baby to fresh fruits and vegetables safely with this silicone feeder pacifier. The mesh design allows babies to safely enjoy whole fruits and vegetables while preventing choking hazards. The protective cover keeps the feeder clean when not in use. Made from 100% food-grade silicone, it's BPA-free and easy to clean. Perfect for teething babies who want to explore new textures and flavors."
@@ -49,7 +49,7 @@ const products = [
         id: 6,
         title: "Deluxe Silicone Fruit Feeder Set with Cover",
         price: 11.99,
-        originalPrice: 9.13,
+        originalPrice: 16.99,
         image: "1set Silicone Baby Fruit Feeder with Cover Baby Nipple Fresh Food Vegetable Supplement Soother Nibbler Baby Silicone Toys/main_image/S43fc540f1b774b4fb1702bfe2e20794cj.jpg",
         description: "Complete fruit feeder set with protective cover. Includes multiple sizes for growing babies.",
         fullDescription: "This deluxe set includes multiple fruit feeders in different sizes, perfect for babies at different stages. Each feeder comes with a protective cover to maintain hygiene. The soft silicone mesh allows babies to safely enjoy fruits and vegetables while providing relief during teething. The set includes everything you need to introduce fresh foods to your little one safely and hygienically."
