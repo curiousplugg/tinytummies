@@ -1034,6 +1034,20 @@ body {
     align-items: center;
 }
 
+.instagram-link {
+    color: var(--white);
+    text-decoration: none;
+    font-size: 1rem;
+    transition: color 0.3s ease;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+}
+
+.instagram-link:hover {
+    color: var(--primary-color);
+    text-decoration: underline;
+}
+
 .social-icon {
     width: 56px;
     height: 56px;
