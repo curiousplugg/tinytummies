@@ -168,16 +168,32 @@ module.exports = async function handler(req, res) {
             ? `https://${req.headers.host}` 
             : 'https://tiny-tummy.com');
 
-        // Create Stripe Checkout Session with embedded mode and custom branding
+        // Calculate total for metadata
+        const totalAmount = validItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+        
+        // Create Stripe Checkout Session with embedded mode and enhanced configuration
         const session = await stripe.checkout.sessions.create({
             ui_mode: 'embedded',
             payment_method_types: ['card'],
             line_items: lineItems,
             mode: 'payment',
             return_url: `${origin}/success.html?session_id={CHECKOUT_SESSION_ID}`,
+            
+            // Collect customer email for order confirmation
+            customer_email: null, // Let Stripe collect it in the form
+            
+            // Shipping configuration - expanded countries
             shipping_address_collection: {
-                allowed_countries: ['US', 'CA'], // Add more countries as needed
+                allowed_countries: [
+                    'US', 'CA', 'GB', 'AU', 'NZ', 'IE', // English-speaking countries
+                    'MX', 'BR', 'AR', 'CL', 'CO', // Latin America
+                    'DE', 'FR', 'IT', 'ES', 'NL', 'BE', 'AT', 'CH', // Europe
+                    'SE', 'NO', 'DK', 'FI', // Nordic
+                    'JP', 'KR', 'SG', 'MY', 'TH', 'PH', 'ID', 'VN' // Asia-Pacific
+                ],
             },
+            
+            // Enhanced shipping options
             shipping_options: [
                 {
                     shipping_rate_data: {
@@ -191,12 +207,31 @@ module.exports = async function handler(req, res) {
                     },
                 },
             ],
+            
+            // Phone number collection for shipping updates
+            phone_number_collection: {
+                enabled: true,
+            },
+            
+            // Enhanced metadata
             metadata: {
                 order_items: JSON.stringify(validItems.map(item => ({
-                    title: item.title.substring(0, 100), // Limit length
+                    title: item.title.substring(0, 100),
                     quantity: item.quantity,
                     price: item.price
-                })))
+                }))),
+                total_amount: totalAmount.toFixed(2),
+                item_count: validItems.length.toString(),
+            },
+            
+            // Automatic tax calculation (if enabled in Stripe)
+            automatic_tax: {
+                enabled: false, // Set to true if you have tax calculation enabled
+            },
+            
+            // Payment intent data for better tracking
+            payment_intent_data: {
+                description: `Tiny Tummy Order - ${validItems.length} item(s)`,
             },
         });
 

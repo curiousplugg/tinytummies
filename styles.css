@@ -638,18 +638,47 @@ body {
     color: var(--text-dark);
     font-size: 1.3rem;
     margin-bottom: 0.5rem;
+    font-weight: 600;
+}
+
+.checkout-subtitle {
+    color: var(--text-light);
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+}
+
+.checkout-trust-badges {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-top: 0.75rem;
+}
+
+.trust-badge-item {
+    font-size: 0.85rem;
+    color: var(--text-light);
+    padding: 0.25rem 0.5rem;
+    background: rgba(255, 107, 157, 0.1);
+    border-radius: 4px;
+    white-space: nowrap;
 }
 
 .stripe-checkout-container {
-    min-height: 400px;
+    min-height: 500px;
     position: relative;
+    background: var(--white);
+    border-radius: 12px;
+    padding: 1rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .stripe-checkout-container iframe {
     width: 100%;
     border: none;
     border-radius: 8px;
-    min-height: 400px;
+    min-height: 500px;
+    background: transparent;
 }
 
 .stripe-loading {
