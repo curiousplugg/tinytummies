@@ -171,26 +171,16 @@ module.exports = async function handler(req, res) {
         // Calculate total for metadata
         const totalAmount = validItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
         
-        // Create Stripe Checkout Session with embedded mode and enhanced configuration
-        const session = await stripe.checkout.sessions.create({
+        // Create Stripe Checkout Session with embedded mode
+        const sessionConfig = {
             ui_mode: 'embedded',
             payment_method_types: ['card'],
             line_items: lineItems,
             mode: 'payment',
             return_url: `${origin}/success.html?session_id={CHECKOUT_SESSION_ID}`,
-            
-            // Shipping configuration - expanded countries
             shipping_address_collection: {
-                allowed_countries: [
-                    'US', 'CA', 'GB', 'AU', 'NZ', 'IE', // English-speaking countries
-                    'MX', 'BR', 'AR', 'CL', 'CO', // Latin America
-                    'DE', 'FR', 'IT', 'ES', 'NL', 'BE', 'AT', 'CH', // Europe
-                    'SE', 'NO', 'DK', 'FI', // Nordic
-                    'JP', 'KR', 'SG', 'MY', 'TH', 'PH', 'ID', 'VN' // Asia-Pacific
-                ],
+                allowed_countries: ['US', 'CA', 'GB', 'AU', 'NZ', 'IE', 'MX', 'BR', 'AR', 'CL', 'CO', 'DE', 'FR', 'IT', 'ES', 'NL', 'BE', 'AT', 'CH', 'SE', 'NO', 'DK', 'FI', 'JP', 'KR', 'SG', 'MY', 'TH', 'PH', 'ID', 'VN'],
             },
-            
-            // Enhanced shipping options
             shipping_options: [
                 {
                     shipping_rate_data: {
@@ -204,13 +194,9 @@ module.exports = async function handler(req, res) {
                     },
                 },
             ],
-            
-            // Phone number collection for shipping updates
             phone_number_collection: {
                 enabled: true,
             },
-            
-            // Enhanced metadata
             metadata: {
                 order_items: JSON.stringify(validItems.map(item => ({
                     title: item.title.substring(0, 100),
@@ -220,40 +206,48 @@ module.exports = async function handler(req, res) {
                 total_amount: totalAmount.toFixed(2),
                 item_count: validItems.length.toString(),
             },
-            
-            // Automatic tax calculation (if enabled in Stripe)
-            // Note: Only include if tax calculation is enabled in your Stripe account
-            // automatic_tax: {
-            //     enabled: false,
-            // },
-        });
+        };
+        
+        const session = await stripe.checkout.sessions.create(sessionConfig);
 
         return res.status(200).json({ 
             clientSecret: session.client_secret
         });
     } catch (error) {
+        // Log detailed error for debugging (server-side only)
         console.error('Error creating checkout session:', error);
         console.error('Error details:', {
             message: error.message,
             type: error.type,
             code: error.code,
-            statusCode: error.statusCode
+            statusCode: error.statusCode,
+            raw: error.raw ? JSON.stringify(error.raw) : 'N/A'
         });
         
-        // Provide more helpful error messages
-        let errorMessage = 'Error creating checkout session';
+        // Return appropriate error based on type
         if (error.type === 'StripeAuthenticationError') {
-            errorMessage = 'Payment service authentication failed. Please contact support.';
+            return res.status(500).json({ 
+                error: 'Payment service authentication failed',
+                message: 'Please contact support at tinytummybusiness@gmail.com'
+            });
+        } else if (error.type === 'StripeInvalidRequestError') {
+            // This helps identify configuration issues
+            console.error('Stripe configuration error:', error.message);
+            return res.status(400).json({ 
+                error: 'Invalid payment request',
+                message: 'Please check your cart and try again.'
+            });
         } else if (error.type === 'StripeAPIError') {
-            errorMessage = 'Payment service error. Please try again.';
-        } else if (error.message) {
-            errorMessage = error.message;
+            return res.status(500).json({ 
+                error: 'Payment service error',
+                message: 'Please try again in a moment.'
+            });
         }
         
-        // Don't expose internal error details to client
+        // Generic error for unknown issues
         return res.status(500).json({ 
             error: 'Payment processing error',
-            message: 'Unable to process payment. Please try again or contact support.'
+            message: 'Unable to process payment. Please try again or contact support at tinytummybusiness@gmail.com'
         });
     }
 }
